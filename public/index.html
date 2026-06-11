@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ScamCheck</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #ffffff;
+    color: #111;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 48px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  main { width: 100%; max-width: 560px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 24px; }
+  label { display: block; font-size: 12px; color: #666; margin: 16px 0 6px; }
+  input {
+    width: 100%; padding: 12px 14px; font-size: 16px;
+    border: 1px solid #ccc; border-radius: 8px; outline: none;
+  }
+  input:focus { border-color: #888; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; }
+  button {
+    padding: 12px 18px; font-size: 15px; border: 1px solid #111;
+    background: #111; color: #fff; border-radius: 8px; cursor: pointer;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  button.secondary { background: #fff; color: #111; }
+  #result {
+    margin-top: 24px; border: 1px solid #e5e5e5; border-radius: 8px;
+    padding: 16px; font-size: 14px; display: none;
+  }
+  #result.show { display: block; }
+  .status { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .status.SAFE { color: #0a7d4d; }
+  .status.UNSAFE { color: #c0271e; }
+  .status.UNVERIFIED { color: #b07400; }
+  .field { display: flex; padding: 6px 0; border-top: 1px solid #f0f0f0; }
+  .field .k { width: 150px; color: #777; }
+  .field .v { flex: 1; }
+  .err { color: #c0271e; }
+  .api { margin-top: 28px; }
+  .api-head { display: flex; align-items: center; justify-content: space-between; }
+  pre {
+    background: #f6f6f6; border: 1px solid #eee; border-radius: 8px;
+    padding: 12px; font-size: 12.5px; overflow-x: auto; white-space: pre-wrap;
+    word-break: break-all; margin: 8px 0 0;
+  }
+  .hint { font-size: 12px; color: #999; margin-top: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ScamCheck</h1>
+
+  <label for="key">API key</label>
+  <input id="key" type="password" placeholder="X-API-Key" autocomplete="off" />
+
+  <label for="number">Phone number (include country code, e.g. +60123456789)</label>
+  <div class="row">
+    <input id="number" type="text" placeholder="+60 12-345 6789" />
+    <button id="btn">Check</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="api">
+    <div class="api-head">
+      <label style="margin:0">API request (copy &amp; paste)</label>
+      <button class="secondary" id="copy" type="button">Copy</button>
+    </div>
+    <pre id="curl"></pre>
+    <div class="hint">Replace nothing — paste straight into your terminal or WordPress integration.</div>
+  </div>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const ORIGIN = location.origin;
+  const ENDPOINT = ORIGIN + "/api/v1/check";
+
+  function renderCurl() {
+    const num = $("number").value.trim() || "+60123456789";
+    const key = $("key").value.trim() || "YOUR_API_KEY";
+    $("curl").textContent =
+      `curl -X POST ${ENDPOINT} \\\n` +
+      `  -H "Content-Type: application/json" \\\n` +
+      `  -H "X-API-Key: ${key}" \\\n` +
+      `  -d '${JSON.stringify({ number: num })}'`;
+  }
+
+  function field(k, v) {
+    return `<div class="field"><div class="k">${k}</div><div class="v">${v ?? "—"}</div></div>`;
+  }
+
+  function renderResult(data) {
+    const box = $("result");
+    box.classList.add("show");
+    if (!data.success) {
+      box.innerHTML = `<div class="err">${data.error || "Error"}</div>`;
+      return;
+    }
+    const r = data.result;
+    const other = [r.carrier, r.line_type, r.threat_type].filter(Boolean).join(" · ") || "—";
+    box.innerHTML =
+      `<div class="status ${r.status}">${r.status}</div>` +
+      field("Number", data.input.e164) +
+      field("Country", (data.country_detected?.flag || "") + " " + (r.country || "")) +
+      field("Name attached", r.name_attached) +
+      field("Date of information", r.date_of_information) +
+      field("Confidence", r.threat_confidence + " / 100") +
+      field("Other", other) +
+      field("Sources", (r.data_sources || []).join(", ") || "—") +
+      (data.cached ? `<div class="hint">served from cache</div>` : "");
+  }
+
+  async function check() {
+    const number = $("number").value.trim();
+    const key = $("key").value.trim();
+    if (!number) return;
+    $("btn").disabled = true;
+    $("btn").textContent = "Checking…";
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-Key": key },
+        body: JSON.stringify({ number }),
+      });
+      renderResult(await res.json());
+    } catch (e) {
+      $("result").classList.add("show");
+      $("result").innerHTML = `<div class="err">Network error: ${e.message}</div>`;
+    } finally {
+      $("btn").disabled = false;
+      $("btn").textContent = "Check";
+    }
+  }
+
+  $("btn").addEventListener("click", check);
+  $("number").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
+  $("number").addEventListener("input", renderCurl);
+  $("key").addEventListener("input", renderCurl);
+  $("copy").addEventListener("click", () => {
+    navigator.clipboard.writeText($("curl").textContent);
+    $("copy").textContent = "Copied";
+    setTimeout(() => ($("copy").textContent = "Copy"), 1200);
+  });
+  renderCurl();
+</script>
+</body>
+</html>
