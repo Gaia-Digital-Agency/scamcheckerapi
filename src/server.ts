@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "node:fs";
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -32,8 +33,15 @@ app.use("/api/", limiter);
 app.use(healthRouter);
 app.use(checkRouter);
 
-// Static test console (plain page) served at /
-app.use(express.static(path.join(__dirname, "..", "public")));
+// Test console served at / with the API key pre-injected (page is public by choice).
+const PUBLIC_DIR = path.join(__dirname, "..", "public");
+const indexHtml = fs
+  .readFileSync(path.join(PUBLIC_DIR, "index.html"), "utf8")
+  .replace("%%SCAMCHECK_KEY%%", config.scamcheckApiKey);
+app.get("/", (_req, res) => res.type("html").send(indexHtml));
+
+// Other static assets (if any)
+app.use(express.static(PUBLIC_DIR));
 
 app.use((_req, res) => res.status(404).json({ error: "Endpoint not found." }));
 

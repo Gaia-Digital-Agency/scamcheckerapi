@@ -79,6 +79,7 @@
   </div>
 </main>
 
+<script>window.__SCAMCHECK_KEY__ = "%%SCAMCHECK_KEY%%";</script>
 <script>
   const $ = (id) => document.getElementById(id);
   const ORIGIN = location.origin;
@@ -154,8 +155,11 @@
     setTimeout(() => ($("copy").textContent = "Copy"), 1200);
   });
 
-  // Restore saved key so it persists across refreshes (stored only in this browser).
-  $("key").value = localStorage.getItem("scamcheck_api_key") || "";
+  // Pre-filled by the server; falls back to a previously saved key.
+  const injected = window.__SCAMCHECK_KEY__ && window.__SCAMCHECK_KEY__.indexOf("%%") === -1
+    ? window.__SCAMCHECK_KEY__ : "";
+  $("key").value = injected || localStorage.getItem("scamcheck_api_key") || "";
+  if (injected) localStorage.setItem("scamcheck_api_key", injected);
   renderCurl();
 </script>
 </body>
