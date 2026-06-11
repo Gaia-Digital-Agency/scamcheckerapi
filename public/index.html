@@ -144,12 +144,18 @@
   $("btn").addEventListener("click", check);
   $("number").addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
   $("number").addEventListener("input", renderCurl);
-  $("key").addEventListener("input", renderCurl);
+  $("key").addEventListener("input", () => {
+    localStorage.setItem("scamcheck_api_key", $("key").value.trim());
+    renderCurl();
+  });
   $("copy").addEventListener("click", () => {
     navigator.clipboard.writeText($("curl").textContent);
     $("copy").textContent = "Copied";
     setTimeout(() => ($("copy").textContent = "Copy"), 1200);
   });
+
+  // Restore saved key so it persists across refreshes (stored only in this browser).
+  $("key").value = localStorage.getItem("scamcheck_api_key") || "";
   renderCurl();
 </script>
 </body>

@@ -10,7 +10,8 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 export function score(merged: MergedData, fallbackCountry: string | null): CheckResult {
-  const today = new Date().toISOString().split("T")[0];
+  // Date of information in GMT+8 (Asia/Singapore — no DST).
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
   const hasData = merged.sources.length > 0;
 
   const fraudScore = merged.fraudScore;
