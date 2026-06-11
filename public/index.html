@@ -52,6 +52,13 @@
     word-break: break-all; margin: 8px 0 0;
   }
   .hint { font-size: 12px; color: #999; margin-top: 6px; }
+  footer {
+    margin-top: 44px; padding-top: 16px; border-top: 1px solid #eee;
+    text-align: center; font-size: 12px; color: #888; line-height: 1.7;
+  }
+  footer a { color: #555; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  footer .sep { color: #ccc; margin: 0 6px; }
 </style>
 </head>
 <body>
@@ -77,6 +84,13 @@
     <pre id="curl"></pre>
     <div class="hint">Replace nothing — paste straight into your terminal or WordPress integration.</div>
   </div>
+
+  <footer>
+    Developed by <a href="https://gaiada.com" target="_blank" rel="noopener">Gaiada.com</a>
+    <span class="sep">|</span> Copyright Reserved © 2026
+    <span class="sep">|</span> <span id="vTime">—</span>
+    <span class="sep">·</span> <span id="vLoc">locating…</span>
+  </footer>
 </main>
 
 <script>window.__SCAMCHECK_KEY__ = "%%SCAMCHECK_KEY%%";</script>
@@ -161,6 +175,27 @@
   $("key").value = injected || localStorage.getItem("scamcheck_api_key") || "";
   if (injected) localStorage.setItem("scamcheck_api_key", injected);
   renderCurl();
+
+  // Footer: visitor local time (live) + location (IP-based, no key).
+  function tickTime() {
+    const d = new Date();
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    $("vTime").textContent =
+      d.toLocaleString([], { year: "numeric", month: "short", day: "numeric",
+        hour: "2-digit", minute: "2-digit", second: "2-digit" }) +
+      (tz ? " (" + tz + ")" : "");
+  }
+  setInterval(tickTime, 1000);
+  tickTime();
+
+  fetch("https://ipwho.is/")
+    .then((r) => r.json())
+    .then((d) => {
+      $("vLoc").textContent = d && d.success
+        ? [d.city, d.region, d.country].filter(Boolean).join(", ")
+        : "";
+    })
+    .catch(() => { $("vLoc").textContent = ""; });
 </script>
 </body>
 </html>

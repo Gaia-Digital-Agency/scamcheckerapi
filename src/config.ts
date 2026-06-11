@@ -9,7 +9,18 @@ function required(name: string): string {
 export const config = {
   port: Number(process.env.PORT || 8080),
   host: process.env.HOST || "127.0.0.1",
+  // Primary key — also the one pre-filled on the public test page.
   scamcheckApiKey: required("SCAMCHECK_API_KEY"),
+  // All accepted keys: primary + any extras in SCAMCHECK_API_KEYS (comma-separated, e.g. the WordPress key).
+  scamcheckApiKeys: Array.from(
+    new Set([
+      required("SCAMCHECK_API_KEY"),
+      ...(process.env.SCAMCHECK_API_KEYS || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ])
+  ),
   databaseUrl: required("DATABASE_URL"),
   allowedOrigins: (process.env.ALLOWED_ORIGINS || "")
     .split(",")
