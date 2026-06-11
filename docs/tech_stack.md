@@ -41,6 +41,6 @@
 
 - **Server:** `gda-s01` (GCP Compute Engine), deployed under **`/var/www/scamcheckerapi`**
 - **Domain:** `https://scamcheckerapi.gaiada.online` (GoDaddy DNS → `gda-s01`); API at `/api/v1/check`, optional test UI at `/`
-- **Process:** Node 18+ under PM2; API on `127.0.0.1:8080` behind nginx + certbot (HTTPS)
+- **Process:** Node 20 under PM2; API on `127.0.0.1:8090` behind nginx + certbot (HTTPS). (Port 8090 — 8080 was already in use on the host.)
 - **Database:** reuse the existing Postgres on `gda-s01` (`127.0.0.1:5432`) with a **dedicated `scamcheck` database** (separate from `gaia_nexus`)
 - **Env:** `.env` for provider keys + `SCAMCHECK_API_KEY` + Postgres connection + `ALLOWED_ORIGINS`

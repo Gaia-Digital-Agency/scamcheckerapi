@@ -12,7 +12,7 @@
 └───────────────────────────────┬────────────────────────────────────┘
                                  ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│  Node.js API (Express + TS) — GCP Compute Engine :8080             │
+│  Node.js API (Express + TS) — GCP Compute Engine :8090             │
 │                                                                    │
 │  ① auth          X-API-Key check + per-IP rate limit               │
 │  ② validate      phoneValidator → E.164 (free local gate)          │
@@ -81,7 +81,7 @@ WordPress ──POST https://scamcheckerapi.gaiada.online/api/v1/check {number} 
                                                           │ nginx + certbot (HTTPS)   │
                                                           │ scamcheckerapi.gaiada.online
                                                           └────────────┬─────────────┘
-                                                                       │ proxy_pass 127.0.0.1:8080
+                                                                       │ proxy_pass 127.0.0.1:8090
                                                           ┌────────────▼─────────────┐
                                                           │ Node API (PM2)            │
                                                           │ /var/www/scamcheckerapi   │
@@ -97,7 +97,7 @@ WordPress ──POST https://scamcheckerapi.gaiada.online/api/v1/check {number} 
 
 - **Domain:** `https://scamcheckerapi.gaiada.online` (DNS arranged on GoDaddy → `gda-s01`). API at `/api/v1/check`; optional test UI at `/`.
 - **Path:** `/var/www/scamcheckerapi` on `gda-s01`.
-- **Process:** PM2 keeps the API alive + on boot; nginx + certbot terminate TLS for `scamcheckerapi.gaiada.online` and proxy to `127.0.0.1:8080`.
+- **Process:** PM2 keeps the API alive + on boot; nginx + certbot terminate TLS for `scamcheckerapi.gaiada.online` and proxy to `127.0.0.1:8090`.
 - **Database:** reuse the existing Postgres instance on `gda-s01`; create a dedicated `scamcheck` DB (separate from `gaia_nexus`).
 - **Secrets:** provider keys live only in `/var/www/scamcheckerapi/packages/api/.env`; WordPress holds only `SCAMCHECK_API_KEY`.
 

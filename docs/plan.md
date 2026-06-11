@@ -45,8 +45,8 @@ and a **deterministic scoring engine** — **no LLM / no Anthropic**. MVP runs o
 ## Milestone 6 — Deploy (`gda-s01`)
 1. Deploy to **`/var/www/scamcheckerapi`** on `gda-s01`: Node 18+, install deps, build.
 2. Create dedicated `scamcheck` Postgres DB on the existing instance; run migrations.
-3. PM2 for API (+ optional SSR server) on `127.0.0.1:8080`.
-4. nginx vhost for **`scamcheckerapi.gaiada.online`** (DNS already set on GoDaddy) → proxy to `:8080`; **certbot** for HTTPS.
+3. PM2 for API (+ optional SSR server) on `127.0.0.1:8090`.
+4. nginx vhost for **`scamcheckerapi.gaiada.online`** (DNS already set on GoDaddy) → proxy to `:8090`; **certbot** for HTTPS.
 5. API live at `https://scamcheckerapi.gaiada.online/api/v1/check`; test UI at the root.
 6. `reference/README.md`: deploy steps + provider signup links + WordPress integration snippet.
 
